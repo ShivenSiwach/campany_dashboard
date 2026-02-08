@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.kpi-box{
+display:inline-block;
+padding:10px;
+margin:10px;
+background:white;
+box-shadow:2px 2px 5px gray;
+}
+
+/* CHART SIZE  */
+.chart-container{
+    width: 380px;
+    height: 240px;
+    margin: 10px;
+    display: inline-block;
+}
+
+canvas{
+    width: 100% !important;
+    height: 100% !important;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Dashboard</h1>
+
+<a href="/logout">Logout</a>
+
+<hr>
+
+<h2>Upload CSV</h2>
+<hr>
+
+<h3>Filter Data</h3>
+
+<form method="POST">
+
+<select name="region">
+<option value="">All Regions</option>
+
+{% if chart_data %}
+{% for r in chart_data.regions | unique %}
+<option value="{{ r }}">{{ r }}</option>
+{% endfor %}
+{% endif %}
+
+</select>
+
+
+<select name="product">
+<option value="">All Products</option>
+
+{% if chart_data %}
+{% for p in chart_data.products | unique %}
+<option value="{{ p }}">{{ p }}</option>
+{% endfor %}
+{% endif %}
+
+</select>
+
+<button>Apply Filter</button>
+
+</form>
+
+<hr>
+
+
+<form method="POST" enctype="multipart/form-data">
+<input type="file" name="file">
+<button>Upload</button>
+</form>
+
+<hr>
+
+{% if total_revenue %}
+
+<div class="kpi-box">Revenue: {{ total_revenue }}</div>
+<div class="kpi-box">Sales: {{ total_sales }}</div>
+<div class="kpi-box">Profit: {{ total_profit }}</div>
+<div class="kpi-box">Margin: {{ profit_margin }}%</div>
+
+<p>{{ insight }}</p>
+
+<h3>ML Prediction</h3>
+
+<div class="kpi-box">
+Next Month Revenue: {{ ml_prediction }}
+</div>
+
+<div class="kpi-box">
+Model Error (MAE): {{ ml_accuracy }}
+</div>
+
+<a href="/download">
+<button>Download CSV</button>
+</a>
+
+{% endif %}
+
+<hr>
+
+<h3>Charts</h3>
+
+{% if chart_data %}
+
+<!--- WRAPPED FOR FIXED SIZE --> 
+<div class="chart-container">
+    <canvas id="productChart"></canvas>
+</div>
+
+<div class="chart-container">
+    <canvas id="regionChart"></canvas>
+</div>
+
+<div class="chart-container">
+    <canvas id="trendChart"></canvas>
+</div>
+
+<script>
+
+var chartData = {{ chart_data | tojson | safe }};
+
+new Chart(document.getElementById("productChart"), {
+type:"bar",
+data:{
+labels: chartData.products,
+datasets:[{label:"Sales", data: chartData.product_sales}]
+},
+options:{
+responsive: false,
+maintainAspectRatio: false
+}
+});
+
+new Chart(document.getElementById("regionChart"), {
+type:"pie",
+data:{
+labels: chartData.regions,
+datasets:[{label:"Revenue", data: chartData.region_revenue}]
+},
+options:{
+responsive: false,
+maintainAspectRatio: false
+}
+});
+
+new Chart(document.getElementById("trendChart"), {
+type:"line",
+data:{
+labels: chartData.dates,
+datasets:[{label:"Profit", data: chartData.profit_trend}]
+},
+options:{
+responsive: false,
+maintainAspectRatio: false
+}
+});
+
+</script>
+
+{% endif %}
+
+</body>
+</html>
