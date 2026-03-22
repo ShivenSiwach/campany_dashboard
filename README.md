@@ -1,6 +1,6 @@
 # Analytics Dashboard (Flask + ML)
 
-Features:
+The Features are :
 - CSV Upload
 - KPI Metrics
 - Filters (Region & Product)
